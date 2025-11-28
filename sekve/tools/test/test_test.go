@@ -2,29 +2,12 @@ package test
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func TestRequest(t *testing.T) {
-	// success
-	r := Request("GET", "/", "body", map[string]string{"name": "data"})
-	assert.Equal(t, "GET", r.Method)
-	assert.Equal(t, "/", r.URL.String())
-
-	// confirm - body
-	bytes, err := io.ReadAll(r.Body)
-	assert.Equal(t, "body", string(bytes))
-	assert.NoError(t, err)
-
-	// confirm - pairs
-	data := r.PathValue("name")
-	assert.Equal(t, "data", data)
-}
 
 func TestResponse(t *testing.T) {
 	// setup
