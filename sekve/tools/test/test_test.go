@@ -1,32 +1,29 @@
 package test
 
 import (
-	"fmt"
-	"io"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.etcd.io/bbolt"
 )
 
-func TestAssertJSON(t *testing.T) {
-	// setup
-	w := httptest.NewRecorder()
-	fmt.Fprintf(w, `"body"`)
+func TestMockDB(t *testing.T) {
+	// successs
+	dbse := MockDB(t)
+	assert.NotNil(t, dbse)
 
-	// success
-	AssertJSON(t, w, http.StatusOK, "body")
-}
+	// confirm - mock data
+	dbse.View(func(tx *bbolt.Tx) error {
+		for name, pairs := range MockData {
+			buck := tx.Bucket([]byte(name))
+			assert.NotNil(t, buck)
 
-func TestRequest(t *testing.T) {
-	// success
-	r := Request("GET", "/", "body")
-	assert.Equal(t, "GET", r.Method)
-	assert.Equal(t, "/", r.URL.Path)
+			for attr, want := range pairs {
+				data := buck.Get([]byte(attr))
+				assert.Equal(t, want, string(data))
+			}
+		}
 
-	// confirm - body
-	bytes, err := io.ReadAll(r.Body)
-	assert.Equal(t, "body", string(bytes))
-	assert.NoError(t, err)
+		return nil
+	})
 }

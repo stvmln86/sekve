@@ -2,27 +2,60 @@
 package test
 
 import (
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
-	"strings"
+	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"go.etcd.io/bbolt"
 )
 
-// AssertJSON asserts a ResponseRecorder's JSON body is equal to a value.
-func AssertJSON(t *testing.T, w *httptest.ResponseRecorder, code int, want any) {
-	var data any
-	rslt := w.Result()
-	err := json.NewDecoder(rslt.Body).Decode(&data)
-	assert.Equal(t, code, rslt.StatusCode)
-	assert.Equal(t, want, data)
-	assert.NoError(t, err)
+// MockData is a map of mock database data for unit testing.
+var MockData = map[string]map[string]string{
+	"user.0000000000000000000000": {
+		"addr": "1.2.3.4",
+		"init": "1000",
+	},
+
+	"pair.0000000000000000000000.alpha": {
+		"body": "Alpha value.",
+		"hash": "49e8c3bb0a4c0773b54af4aee638ef128c5dceae19b2e5adba57f0bdc33d4840",
+		"init": "2000",
+	},
+
+	"pair.0000000000000000000000.bravo": {
+		"body": "Bravo value.",
+		"hash": "e628d55d2c5c5e47bda1fbb4fe8c8a365eb12c89d2745346216e20cad0b4a0c3",
+		"init": "3000",
+	},
 }
 
-// Request returns a new mock Request with a body string and path values.
-func Request(meth, path, body string) *http.Request {
-	buff := strings.NewReader(body)
-	return httptest.NewRequest(meth, path, buff)
+// MockDB returns a temporary Bolt database containing MockData.
+func MockDB(t *testing.T) *bbolt.DB {
+	dest := filepath.Join(t.TempDir(), "bolt.db")
+	dbse, err := bbolt.Open(dest, 0600, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = dbse.Update(func(tx *bbolt.Tx) error {
+		for name, pairs := range MockData {
+			buck, err := tx.CreateBucketIfNotExists([]byte(name))
+			if err != nil {
+				return err
+			}
+
+			for attr, data := range pairs {
+				if err := buck.Put([]byte(attr), []byte(data)); err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return dbse
 }
