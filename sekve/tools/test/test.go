@@ -3,7 +3,9 @@ package test
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,4 +19,10 @@ func AssertJSON(t *testing.T, w *httptest.ResponseRecorder, code int, want any) 
 	assert.Equal(t, code, rslt.StatusCode)
 	assert.Equal(t, want, data)
 	assert.NoError(t, err)
+}
+
+// Request returns a new mock Request with a body string and path values.
+func Request(meth, path, body string) *http.Request {
+	buff := strings.NewReader(body)
+	return httptest.NewRequest(meth, path, buff)
 }
