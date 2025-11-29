@@ -11,10 +11,10 @@ import (
 
 func TestRead(t *testing.T) {
 	// setup
-	r := test.Request("GET", "/", "body", nil)
+	rqst := test.Request("GET", "/", "body", nil)
 
 	// success
-	body := Read(r)
+	body := Read(rqst)
 	assert.Equal(t, "body", body)
 }
 

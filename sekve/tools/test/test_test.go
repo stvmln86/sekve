@@ -31,16 +31,16 @@ func TestMockDB(t *testing.T) {
 
 func TestRequest(t *testing.T) {
 	// success
-	r := Request("GET", "/", "body", map[string]string{"attr": "data"})
-	assert.Equal(t, "GET", r.Method)
-	assert.Equal(t, "/", r.URL.String())
+	rqst := Request("GET", "/", "body", map[string]string{"attr": "data"})
+	assert.Equal(t, "GET", rqst.Method)
+	assert.Equal(t, "/", rqst.URL.String())
 
 	// confirm - body
-	bytes, err := io.ReadAll(r.Body)
+	bytes, err := io.ReadAll(rqst.Body)
 	assert.Equal(t, "body", string(bytes))
 	assert.NoError(t, err)
 
 	// confirm - path values
-	data := r.PathValue("attr")
+	data := rqst.PathValue("attr")
 	assert.Equal(t, "data", data)
 }
