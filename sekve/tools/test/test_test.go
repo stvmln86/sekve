@@ -1,6 +1,7 @@
 package test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,4 +27,20 @@ func TestMockDB(t *testing.T) {
 
 		return nil
 	})
+}
+
+func TestRequest(t *testing.T) {
+	// success
+	r := Request("GET", "/", "body", map[string]string{"attr": "data"})
+	assert.Equal(t, "GET", r.Method)
+	assert.Equal(t, "/", r.URL.String())
+
+	// confirm - body
+	bytes, err := io.ReadAll(r.Body)
+	assert.Equal(t, "body", string(bytes))
+	assert.NoError(t, err)
+
+	// confirm - path values
+	data := r.PathValue("attr")
+	assert.Equal(t, "data", data)
 }

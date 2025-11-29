@@ -2,7 +2,10 @@
 package test
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"go.etcd.io/bbolt"
@@ -58,4 +61,14 @@ func MockDB(t *testing.T) *bbolt.DB {
 	}
 
 	return dbse
+}
+
+// Request returns a new mock Request with a body string and value pairs.
+func Request(meth, path, body string, pairs map[string]string) *http.Request {
+	r := httptest.NewRequest(meth, path, strings.NewReader(body))
+	for attr, data := range pairs {
+		r.SetPathValue(attr, data)
+	}
+
+	return r
 }
